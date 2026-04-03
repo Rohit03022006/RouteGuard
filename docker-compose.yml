@@ -23,6 +23,7 @@ services:
       - app-net
 
   backend:
+    build: ./backend
     image: rohitxten/routeguardg-backend
     container_name: backend
     depends_on:
@@ -39,6 +40,7 @@ services:
       - app-net
 
   frontend:
+    build: ./frontend
     image: rohitxten/routeguardg-frontend
     container_name: frontend
     ports:
@@ -49,6 +51,7 @@ services:
       - app-net
 
   ml:
+    build: ./SupplyChainMapping
     image: rohitxten/routeguardg-ml
     container_name: ml
     ports:
