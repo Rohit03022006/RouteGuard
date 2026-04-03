@@ -1,0 +1,16 @@
+kubectl apply -f . -n routeguardg-ns
+
+kubectl get pods -n routeguardg-ns
+
+kubectl get pods -n routeguardg-ns -w
+
+kubectl port-forward svc/frontend-service 8080:80 -n routeguardg-ns --address 0.0.0.0
+http://52.53.190.143:8080/
+
+kubectl port-forward svc/grafana-service 3000:3000 -n routeguardg-ns --address 0.0.0.0
+http://52.53.190.143:3000/
+
+kubectl port-forward svc/prometheus-service 9090:9090 -n routeguardg-ns --address 0.0.0.0
+http://52.53.190.143:9090/
+
+kubectl get all -n routeguardg-ns
