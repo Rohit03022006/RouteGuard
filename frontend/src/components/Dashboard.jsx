@@ -30,8 +30,50 @@ const Dashboard = () => {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const data = await API.trucks.getAll(); // 🔥 direct API call
-        setDisplayTrucks(data);
+        const data = await API.trucks.getAll();
+
+        const transformed = data.map((truck, index) => {
+          const trip = truck.trip || {};
+
+          const hours = trip.durationS ? Math.floor(trip.durationS / 3600) : 0;
+
+          const minutes = trip.durationS
+            ? Math.floor((trip.durationS % 3600) / 60)
+            : 0;
+
+          return {
+            id: truck.id ? `TRK-${truck.id}` : `TRK-${index + 1}`,
+            driver: truck.pilotName || "Unknown",
+            status: trip.status || "On Route",
+
+            lastLocation: [
+              trip.lastLocationLat ?? trip.originLat ?? 28.8571,
+              trip.lastLocationLon ?? trip.originLon ?? 76.827,
+            ],
+
+            destination: [trip.destLat || 28.5828, trip.destLon || 77.3988],
+
+            distance: trip.distanceM
+              ? `${(trip.distanceM / 1000).toFixed(1)} km`
+              : "N/A",
+
+            duration: trip.durationS ? `${hours}h ${minutes}m` : "N/A",
+
+            deviation: trip.status === "DEVIATED",
+            risk: trip.riskScore || 0,
+
+            polyline: trip.polyline || "",
+          };
+        });
+
+        setDisplayTrucks(transformed);
+
+        setDisplayStats({
+          totalTrucks: transformed.length,
+          deviatedTrucks: transformed.filter((t) => t.deviation).length,
+          completedTrips: transformed.length,
+          avgOnTimeDelivery: "92%",
+        });
       } catch (err) {
         console.error(err);
       }
@@ -40,61 +82,12 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Transform data
-  useEffect(() => {
-    if (trucksDataFromAPI && Array.isArray(trucksDataFromAPI)) {
-      const transformed = trucksDataFromAPI.map((truck, index) => {
-        const trip = truck.trip || {};
-
-        const hours = trip.durationS ? Math.floor(trip.durationS / 3600) : 0;
-        const minutes = trip.durationS
-          ? Math.floor((trip.durationS % 3600) / 60)
-          : 0;
-
-        return {
-          id: truck.truckId || `TRK-${index + 1}`,
-          driver: truck.driver || "Unknown",
-          status: truck.status || "On Route",
-
-          // ✅ 🔥 LIVE LOCATION FIX
-          lastLocation: [
-            trip.lastLocationLat ?? trip.originLat ?? 28.8571,
-            trip.lastLocationLon ?? trip.originLon ?? 76.827,
-          ],
-
-          destination: [trip.destLat || 28.5828, trip.destLon || 77.3988],
-
-          distance: trip.distanceM
-            ? `${(trip.distanceM / 1000).toFixed(1)} km`
-            : "N/A",
-
-          duration: trip.durationS ? `${hours}h ${minutes}m` : "N/A",
-
-          deviation: false,
-          polyline: trip.polyline || "",
-        };
-      });
-
-      setDisplayTrucks(transformed);
-
-      // ✅ DYNAMIC STATS
-      setDisplayStats({
-        totalTrucks: transformed.length,
-        deviatedTrucks: transformed.filter((t) => t.deviation).length,
-        completedTrips: transformed.length,
-        avgOnTimeDelivery: "92%",
-      });
-    }
-  }, [trucksDataFromAPI]);
-
-  // Analytics
   useEffect(() => {
     if (backendAnalytics && Array.isArray(backendAnalytics)) {
       setDisplayAnalytics(backendAnalytics);
     }
   }, [backendAnalytics]);
 
-  // ⏳ Loading
   if (tripsLoading || analyticsLoading) {
     return (
       <div className="flex h-screen bg-brand-lightest">
@@ -108,7 +101,6 @@ const Dashboard = () => {
     );
   }
 
-  // ❌ Error
   if (tripsError || analyticsError) {
     return (
       <div className="flex h-screen bg-brand-lightest">
@@ -142,7 +134,7 @@ const Dashboard = () => {
         <Header />
 
         <div className="flex-1 overflow-y-auto p-8 space-y-8">
-          {/* STATS */}
+          
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
               label="Total Fleet"
@@ -167,7 +159,6 @@ const Dashboard = () => {
             />
           </div>
 
-          {/* TABLE + CHART */}
           <div className="grid lg:grid-cols-3 gap-8">
             <TruckTable
               trucksData={displayTrucks.length > 0 ? displayTrucks : trucksData}
@@ -176,7 +167,6 @@ const Dashboard = () => {
             <AnalyticsChart analyticsData={displayAnalytics} />
           </div>
 
-          {/* DETAIL */}
           {selectedTruck && (
             <TruckDetail
               selectedTruck={selectedTruck}

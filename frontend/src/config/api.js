@@ -1,10 +1,7 @@
 // API Configuration
-
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "/api"; // same-origin proxy path (nginx) to avoid CORS
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "/api"; // same-origin proxy path (nginx) to avoid CORS
 
 const API_TIMEOUT = 30000;
-
 
 const apiCall = async (endpoint, options = {}) => {
   const {
@@ -31,7 +28,6 @@ const apiCall = async (endpoint, options = {}) => {
 
     clearTimeout(timeoutId);
 
-    
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(errorText || `HTTP ${response.status}`);
@@ -44,7 +40,6 @@ const apiCall = async (endpoint, options = {}) => {
     throw error;
   }
 };
-
 
 export const API = {
   trips: {
