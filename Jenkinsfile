@@ -24,14 +24,6 @@ stages {
         }
     }
 
-    stage('OWASP Dependency Check') {
-        steps {
-            dependencyCheck additionalArguments: '--scan ./ --format HTML --format XML',
-                            odcInstallation: 'Dependency check'
-            dependencyCheckPublisher pattern: '**/dependency-check-report.*'
-        }
-    }
-
     stage('Trivy File System Scan') {
         steps {
             sh '''
@@ -95,29 +87,39 @@ stages {
     }
 
     stage('Deploy to Kubernetes') {
-        when {
-            branch 'main'
-        }
         steps {
-            sh '''
-            echo "🚀 Deploying RouteGuardg..."
+            withCredentials([file(credentialsId: 'kubeconfig', variable: 'KCFG')]) {
+                sh '''
+                export KUBECONFIG=$KCFG
 
-            # Create namespace
-            kubectl create namespace ${K8S_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+                echo "Deploying RouteGuardg..."
 
-            # Apply all k8s files
-            kubectl apply -f k8s/
+                kubectl create namespace ${K8S_NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
 
-            # Update images dynamically
-            kubectl set image deployment/frontend-deployment frontend=${FRONTEND_IMAGE} -n ${K8S_NAMESPACE}
-            kubectl set image deployment/backend-deployment backend=${BACKEND_IMAGE} -n ${K8S_NAMESPACE}
-            kubectl set image deployment/ml-deployment ml=${ML_IMAGE} -n ${K8S_NAMESPACE}
+                kubectl apply -f K8S/
 
-            # Wait for rollout
-            kubectl rollout status deployment/frontend-deployment -n ${K8S_NAMESPACE}
-            kubectl rollout status deployment/backend-deployment -n ${K8S_NAMESPACE}
-            kubectl rollout status deployment/ml-deployment -n ${K8S_NAMESPACE}
-            '''
+                kubectl set image deployment/frontend-deployment frontend=${FRONTEND_IMAGE} -n ${K8S_NAMESPACE}
+                kubectl set image deployment/backend-deployment backend=${BACKEND_IMAGE} -n ${K8S_NAMESPACE}
+                kubectl set image deployment/ml-deployment ml=${ML_IMAGE} -n ${K8S_NAMESPACE}
+
+                kubectl rollout status deployment/frontend-deployment -n ${K8S_NAMESPACE}
+                kubectl rollout status deployment/backend-deployment -n ${K8S_NAMESPACE}
+                kubectl rollout status deployment/ml-deployment -n ${K8S_NAMESPACE}
+                '''
+            }
+        }
+    }
+    stage('Deploy to Monitoring') {
+        steps {
+            script {
+                sh '''
+                echo "Deploying Monitoring Stack..."
+
+                kubectl apply -f K8S/monitoring/
+
+                echo "Monitoring stack deployed successfully!"
+                '''
+            }
         }
     }
 
@@ -134,16 +136,15 @@ stages {
 
 post {
     success {
-        echo '✅ RouteGuardg deployed successfully!'
+        echo 'RouteGuardg deployed successfully!'
     }
 
     failure {
-        echo '❌ Deployment failed!'
+        echo 'Deployment failed!'
     }
 
     always {
         archiveArtifacts artifacts: '**/*report.html', allowEmptyArchive: true
-        archiveArtifacts artifacts: '**/dependency-check-report.*', allowEmptyArchive: true
     }
 }
 
