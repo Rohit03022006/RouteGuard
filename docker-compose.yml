@@ -1,0 +1,61 @@
+version: '3.8'
+
+networks:
+  app-net:
+    driver: bridge
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: techs
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: apurv998
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./trip_data.csv:/docker-entrypoint-initdb.d/trip_data.csv
+    ports:
+      - "5433:5432"
+    networks:
+      - app-net
+
+  backend:
+    image: rohitxten/routeguardg-backend
+    container_name: backend
+    depends_on:
+      - postgres
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/techs
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: apurv998
+      SPRING_PROFILES_ACTIVE: prod
+      ML_SERVICE_URL: http://ml:8000
+    ports:
+      - "8082:8082"
+    networks:
+      - app-net
+
+  frontend:
+    image: rohitxten/routeguardg-frontend
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - app-net
+
+  ml:
+    image: rohitxten/routeguardg-ml
+    container_name: ml
+    ports:
+      - "8000:8000"
+    networks:
+      - app-net
+
+volumes:
+  postgres-data:
+    driver: local
