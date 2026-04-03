@@ -1,16 +1,112 @@
+============================================================
+        ROUTEGUARD - KUBERNETES DEPLOYMENT GUIDE
+============================================================
+
+------------------------------------------------------------
+1. INSTALL DOCKER
+------------------------------------------------------------
+sudo apt update
+sudo apt install -y docker.io
+
+------------------------------------------------------------
+2. START & ENABLE DOCKER
+------------------------------------------------------------
+sudo systemctl start docker
+sudo systemctl enable docker
+
+------------------------------------------------------------
+3. CHECK DOCKER VERSION
+------------------------------------------------------------
+docker --version
+
+------------------------------------------------------------
+4. FIX PERMISSION ISSUE (IMPORTANT)
+------------------------------------------------------------
+sudo usermod -aG docker $USER
+newgrp docker
+
+------------------------------------------------------------
+5. INSTALL KUBECTL
+------------------------------------------------------------
+curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+chmod +x kubectl
+sudo mv kubectl /usr/local/bin/
+kubectl version --client
+
+------------------------------------------------------------
+6. INSTALL KIND (Kubernetes in Docker)
+------------------------------------------------------------
+curl -Lo ./kind https://kind.sigs.k8s.io/dl/latest/kind-linux-amd64
+chmod +x kind
+sudo mv kind /usr/local/bin/
+kind --version
+
+------------------------------------------------------------
+7. CREATE KIND CLUSTER
+------------------------------------------------------------
+kind create cluster --name routeguard
+
+------------------------------------------------------------
+8. CHECK CLUSTER
+------------------------------------------------------------
+kubectl get nodes
+
+------------------------------------------------------------
+9. GIVE KUBECTL ACCESS
+------------------------------------------------------------
+mkdir -p $HOME/.kube
+cp ~/.kube/config $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+kubectl get all
+
+------------------------------------------------------------
+10. CLONE ROUTEGUARD REPO
+------------------------------------------------------------
+git clone https://github.com/Rohit03022006/RouteGuard.git
+
+------------------------------------------------------------
+11. AWS PORTS TO OPEN
+------------------------------------------------------------
+-> 8080 (Frontend)
+-> 3000 (Grafana)
+-> 9090 (Prometheus)
+
+------------------------------------------------------------
+12. DATA MIGRATION
+------------------------------------------------------------
+chmod +x migrate_trips.sh
+./migrate_trips.sh
+
+------------------------------------------------------------
+13. DEPLOY TO KUBERNETES
+------------------------------------------------------------
+cd RouteGuard/K8S
 kubectl apply -f . -n routeguardg-ns
-
 kubectl get pods -n routeguardg-ns
-
 kubectl get pods -n routeguardg-ns -w
 
+------------------------------------------------------------
+14. PORT FORWARDING
+------------------------------------------------------------
+
+# Frontend
 kubectl port-forward svc/frontend-service 8080:80 -n routeguardg-ns --address 0.0.0.0
-http://52.53.190.143:8080/
+# Access: http://52.53.190.143:8080/
 
+# Grafana
 kubectl port-forward svc/grafana-service 3000:3000 -n routeguardg-ns --address 0.0.0.0
-http://52.53.190.143:3000/
+# Access: http://52.53.190.143:3000/
 
+# Prometheus
 kubectl port-forward svc/prometheus-service 9090:9090 -n routeguardg-ns --address 0.0.0.0
-http://52.53.190.143:9090/
+# Access: http://52.53.190.143:9090/
 
+------------------------------------------------------------
+15. CHECK ALL RESOURCES
+------------------------------------------------------------
 kubectl get all -n routeguardg-ns
+
+-> Docker Monitoring with cAdvisor + Prometheus : 193 -> http://prometheus:9090
+============================================================
+                        END OF GUIDE
+============================================================
