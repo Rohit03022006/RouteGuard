@@ -23,6 +23,8 @@ const RegisterTruck = () => {
     truckId: "",
     driver: "",
     routeId: "",
+    startLat: "",
+    startLon: "",
   });
 
   // ✅ FETCH ROUTES
@@ -47,7 +49,7 @@ const RegisterTruck = () => {
 
     try {
       if (!form.truckId || !form.driver || !form.routeId) {
-        setError("Please fill all fields");
+        setError("Please fill all required fields");
         return;
       }
 
@@ -55,6 +57,8 @@ const RegisterTruck = () => {
         truckId: form.truckId,
         driver: form.driver,
         routeId: Number(form.routeId),
+        startLat: form.startLat ? Number(form.startLat) : null,
+        startLon: form.startLon ? Number(form.startLon) : null,
       };
 
       await API.trucks.create(payload);
@@ -155,6 +159,37 @@ const RegisterTruck = () => {
                         setForm({ ...form, driver: e.target.value })
                       }
                       className="w-full bg-white/50 border border-brand-sage/20 rounded-2xl py-4 pl-12 pr-4 text-sm font-bold focus:ring-4 focus:ring-brand-sage/20 focus:bg-white outline-none transition"
+                    />
+                  </div>
+                </div>
+
+                {/* Initial Coordinates */}
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-brand-steel/60 ml-2">Initial Latitude (Optional)</label>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="e.g. 28.8571"
+                      value={form.startLat}
+                      onChange={(e) =>
+                        setForm({ ...form, startLat: e.target.value })
+                      }
+                      className="w-full bg-white/50 border border-brand-sage/20 rounded-2xl py-4 px-4 text-sm font-bold focus:ring-4 focus:ring-brand-sage/20 focus:bg-white outline-none transition"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-brand-steel/60 ml-2">Initial Longitude (Optional)</label>
+                    <input
+                      type="number"
+                      step="any"
+                      placeholder="e.g. 76.827"
+                      value={form.startLon}
+                      onChange={(e) =>
+                        setForm({ ...form, startLon: e.target.value })
+                      }
+                      className="w-full bg-white/50 border border-brand-sage/20 rounded-2xl py-4 px-4 text-sm font-bold focus:ring-4 focus:ring-brand-sage/20 focus:bg-white outline-none transition"
                     />
                   </div>
                 </div>

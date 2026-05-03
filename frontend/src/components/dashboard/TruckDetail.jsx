@@ -1,9 +1,9 @@
 import React from 'react';
 import { ChevronRight, AlertTriangle, TrendingUp } from 'lucide-react';
-import MapView from '../MapView';
+import AnimatedRouteMap from './AnimatedRouteMap';
 import InfoRow from './InfoRow';
 
-const TruckDetail = ({ selectedTruck, setSelectedTruck }) => {
+const TruckDetail = ({ selectedTruck, setSelectedTruck, onRouteData, onAnimationComplete }) => {
     return (
         <div className="space-y-8 flex flex-col h-full animate-in fade-in slide-in-from-bottom-4 duration-500">
             <div className="flex items-center justify-between">
@@ -31,7 +31,7 @@ const TruckDetail = ({ selectedTruck, setSelectedTruck }) => {
 
             {/* Expanded Map View Container */}
             <div className="flex-1 min-h-[550px] rounded-[2.5rem] overflow-hidden border border-brand-sage/20 relative shadow-2xl shadow-brand-darkest/10 group">
-                <MapView truck={selectedTruck} />
+                <AnimatedRouteMap key={selectedTruck.id} truck={selectedTruck} onRouteData={onRouteData} onAnimationComplete={onAnimationComplete} />
 
                 {/* Overlay for Info */}
                 <div className="absolute top-8 left-8 z-[1000] w-80 space-y-5 pointer-events-none">
@@ -51,7 +51,7 @@ const TruckDetail = ({ selectedTruck, setSelectedTruck }) => {
                             <div className="flex items-center justify-between p-3.5 rounded-2xl bg-brand-deep/30 border border-brand-steel/20">
                                 <div className="flex flex-col">
                                     <span className="text-[9px] uppercase font-black text-brand-sage/60 tracking-widest">Efficiency</span>
-                                    <span className="text-sm font-black text-brand-lightest">94.8%</span>
+                                    <span className="text-sm font-black text-brand-lightest">{selectedTruck.efficiency || "94.8%"}</span>
                                 </div>
                                 <div className="w-16 h-8 bg-brand-sage/10 rounded-lg flex items-center justify-center">
                                     <TrendingUp size={14} className="text-brand-sage" />

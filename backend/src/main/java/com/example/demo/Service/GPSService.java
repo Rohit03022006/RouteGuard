@@ -30,6 +30,16 @@ public class GPSService {
         Trip trip = tripRepo.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found"));
 
+        // ✅ GPS DRIFT CORRECTION
+        // If the jump is more than 5km in one update, it's likely a GPS error
+        if (trip.getLastLocationLat() != null && trip.getLastLocationLon() != null) {
+            double distance = calculateDistance(trip.getLastLocationLat(), trip.getLastLocationLon(), lat, lon);
+            if (distance > 5.0) {
+                System.out.println("GPS DRIFT DETECTED: Ignoring point [" + lat + ", " + lon + "]");
+                return;
+            }
+        }
+
         // ✅ 1. Save GPS log (history)
         GPS log = new GPS();
         log.setLatitude(lat);
@@ -43,16 +53,33 @@ public class GPSService {
         trip.setLastLocationLon(lon);
 
         tripRepo.save(trip);
+        
+        // ✅ Real-Time ML Anomaly Check
+        try {
+            deviationService.checkTripWithML(trip);
+        } catch (Exception e) {
+            System.err.println("ML Check failed: " + e.getMessage());
+        }
+    }
 
-        // 🔥 (Optional) Real-time anomaly check later
+    public java.util.List<GPS> getHistory(Long tripId) {
+        return gpsRepo.findByTripIdOrderByTimestampAsc(tripId);
+    }
+
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        double theta = lon1 - lon2;
+        double dist = Math.sin(Math.toRadians(lat1)) * Math.sin(Math.toRadians(lat2))
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.cos(Math.toRadians(theta));
+        dist = Math.acos(dist);
+        dist = Math.toDegrees(dist);
+        dist = dist * 60 * 1.1515 * 1.609344; // to kilometers
+        return dist;
     }
 
     // Call this when trip ends
     public void completeTrip(Long tripId) {
-
         Trip trip = tripRepo.findById(tripId)
                 .orElseThrow(() -> new RuntimeException("Trip not found"));
-
         deviationService.checkTripWithML(trip);
     }
 }

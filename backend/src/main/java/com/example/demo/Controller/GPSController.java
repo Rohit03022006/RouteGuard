@@ -25,4 +25,9 @@ public class GPSController {
 
         return "GPS logged successfully";
     }
+
+    @GetMapping("/{tripId}/history")
+    public java.util.List<com.example.demo.Entity.GPS> getHistory(@PathVariable Long tripId) {
+        return gpsService.getHistory(tripId);
+    }
 }

@@ -23,14 +23,36 @@ public class TruckService {
 
     public Truck registerTruck(TruckRequest req) {
 
-        Trip trip = routeRepository.findById(req.getRouteId())
+        Trip templateRoute = routeRepository.findById(req.getRouteId())
                 .orElseThrow(() -> new RuntimeException("Route not found"));
+
+        Trip newTrip = new Trip();
+        newTrip.setOriginLat(templateRoute.getOriginLat());
+        newTrip.setOriginLon(templateRoute.getOriginLon());
+        newTrip.setDestLat(templateRoute.getDestLat());
+        newTrip.setDestLon(templateRoute.getDestLon());
+        newTrip.setDistanceM(templateRoute.getDistanceM());
+        newTrip.setDurationS(templateRoute.getDurationS());
+        newTrip.setPolyline(templateRoute.getPolyline());
+        newTrip.setStatus(com.example.demo.Entity.TripStatus.ONGOING);
+
+        // ✅ SET INITIAL COORDINATES IF PROVIDED
+        if (req.getStartLat() != null && req.getStartLon() != null) {
+            newTrip.setLastLocationLat(req.getStartLat());
+            newTrip.setLastLocationLon(req.getStartLon());
+        } else {
+            // Default to origin if not provided
+            newTrip.setLastLocationLat(templateRoute.getOriginLat());
+            newTrip.setLastLocationLon(templateRoute.getOriginLon());
+        }
+
+        newTrip = routeRepository.save(newTrip);
 
         Truck truck = Truck.builder()
                 .truckId(req.getTruckId())
                 .pilotName(req.getDriver())
                 .status("Registered")
-                .trip(trip)
+                .trip(newTrip)
                 .build();
 
         return truckRepository.save(truck);

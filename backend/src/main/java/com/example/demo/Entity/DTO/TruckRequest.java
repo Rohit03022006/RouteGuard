@@ -6,6 +6,8 @@ public class TruckRequest {
   private String truckId;
   private String driver;
   private Long routeId;
+  private Double startLat;
+  private Double startLon;
 
     public String getTruckId() {
         return truckId;
@@ -31,4 +33,19 @@ public class TruckRequest {
         this.routeId = routeId;
     }
 
+    public Double getStartLat() {
+        return startLat;
+    }
+
+    public void setStartLat(Double startLat) {
+        this.startLat = startLat;
+    }
+
+    public Double getStartLon() {
+        return startLon;
+    }
+
+    public void setStartLon(Double startLon) {
+        this.startLon = startLon;
+    }
 }

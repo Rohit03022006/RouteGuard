@@ -1,19 +1,27 @@
-import React from 'react';
-import { ChevronRight } from 'lucide-react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ChevronRight, ChevronDown, ChevronUp } from 'lucide-react';
 
-const TruckTable = ({ trucksData, setSelectedTruck, setActiveTab }) => {
+const TruckTable = ({ trucksData, setActiveTab }) => {
+    const navigate = useNavigate();
+    const [isExpanded, setIsExpanded] = useState(false);
+
+    // If not expanded, show only top 4 trucks. If expanded, show all.
+    const displayData = isExpanded ? trucksData : trucksData.slice(0, 4);
+
     return (
         <div className="lg:col-span-2 bg-white rounded-3xl border border-brand-sage/20 shadow-xl shadow-brand-darkest/5 overflow-hidden flex flex-col transition-all duration-500 hover:shadow-2xl hover:shadow-brand-darkest/10">
             <div className="p-7 border-b border-brand-sage/10 flex items-center justify-between bg-gradient-to-r from-white to-brand-lightest/30">
                 <div>
-                    <h3 className="text-xl font-black text-brand-darkest tracking-tight">Active Fleet Monitor</h3>
+                    <h3 className="text-xl font-black text-brand-darkest tracking-tight">Active Trips</h3>
                     <p className="text-[10px] text-brand-steel uppercase font-black tracking-widest opacity-60">Real-time logistic tracking</p>
                 </div>
                 <button
-                    onClick={() => setActiveTab('trucks')}
-                    className="px-5 py-2 rounded-xl bg-brand-lightest text-brand-deep text-xs font-black uppercase tracking-widest hover:bg-brand-deep hover:text-white transition-all shadow-sm active:scale-95"
+                    onClick={() => setIsExpanded(!isExpanded)}
+                    className="flex items-center gap-2 px-5 py-2 rounded-xl bg-brand-lightest text-brand-deep text-xs font-black uppercase tracking-widest hover:bg-brand-deep hover:text-white transition-all shadow-sm active:scale-95"
                 >
-                    Expand Fleet
+                    {isExpanded ? 'Collapse Fleet' : 'Expand Fleet'}
+                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
             </div>
             <div className="overflow-x-auto">
@@ -28,7 +36,7 @@ const TruckTable = ({ trucksData, setSelectedTruck, setActiveTab }) => {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-brand-sage/5">
-                        {trucksData.map((truck) => (
+                        {displayData.map((truck) => (
                             <tr key={truck.id} className="hover:bg-brand-lightest/40 transition-all group duration-300">
                                 <td className="px-8 py-5">
                                     <div className="flex items-center gap-4">
@@ -60,7 +68,7 @@ const TruckTable = ({ trucksData, setSelectedTruck, setActiveTab }) => {
                                 </td>
                                 <td className="px-8 py-5 text-center">
                                     <button
-                                        onClick={() => setSelectedTruck(truck)}
+                                        onClick={() => navigate(`/truck/${truck.id}`)}
                                         className="p-2.5 rounded-xl bg-brand-lightest text-brand-deep border border-brand-sage/20 hover:bg-brand-deep hover:text-white hover:border-brand-deep transition-all transform active:scale-90 shadow-sm group-hover:scale-110"
                                     >
                                         <ChevronRight size={18} />

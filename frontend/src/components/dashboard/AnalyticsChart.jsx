@@ -4,7 +4,7 @@ import { TrendingUp } from 'lucide-react';
 
 const AnalyticsChart = ({ analyticsData }) => {
     return (
-        <div className="bg-brand-darkest rounded-[2rem] p-8 text-brand-sage border border-white/5 shadow-2xl overflow-hidden flex flex-col group transition-all duration-500 hover:shadow-brand-darkest/40">
+        <div className="bg-brand-darkest rounded-[2rem] p-8 text-brand-sage border border-white/5 shadow-2xl overflow-hidden flex flex-col group transition-all duration-500 hover:shadow-brand-darkest/40 h-[450px] w-full">
             <div className="mb-8 flex items-center justify-between">
                 <div>
                     <h3 className="text-xl font-black text-white tracking-tight">System Reliability</h3>
@@ -15,7 +15,7 @@ const AnalyticsChart = ({ analyticsData }) => {
                 </div>
             </div>
 
-            <div className="flex-1 h-64 lg:h-auto min-h-[320px]">
+            <div className="flex-1 h-80 min-h-[320px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={analyticsData}>
                         <defs>
